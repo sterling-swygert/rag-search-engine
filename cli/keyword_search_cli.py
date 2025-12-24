@@ -3,7 +3,8 @@
 import argparse
 import math
 
-from indexing.inverted import InvertedIndex, tokenize
+from lib.indexing import InvertedIndex, tokenize
+from lib import constants
 
 
 def main() -> None:
@@ -25,6 +26,19 @@ def main() -> None:
     tfidf_parser = subparsers.add_parser("tfidf", help="Get TF-IDF for a term in a document")
     tfidf_parser.add_argument("doc_id", type=int, help="Document ID to get", default=None)
     tfidf_parser.add_argument("term", type=str, help="Term to get TF-IDF for")
+
+    bm25_idf_parser = subparsers.add_parser("bm25idf", help="Get inverse document frequency for a term")
+    bm25_idf_parser.add_argument("term", type=str, help="Term to get BM25 score for")
+
+    bm25_tf_parser = subparsers.add_parser("bm25tf", help="Get BM25 term frequency for a term in a document")
+    bm25_tf_parser.add_argument("doc_id", type=int, help="Document ID to get", default=None)
+    bm25_tf_parser.add_argument("term", type=str, help="Term to get BM25 TF for")   
+    bm25_tf_parser.add_argument("k1", type=float, nargs='?', help="Tunable BM25 k1 parameter", default=constants.BM25_K1)
+    bm25_tf_parser.add_argument("b", type=float, nargs='?', help="Tunable BM25 b parameter", default=constants.BM25_B)
+
+    bm25search_parser = subparsers.add_parser("bm25search", help="Search movies using full BM25 scoring")
+    bm25search_parser.add_argument("query", type=str, help="Search query")
+    bm25search_parser.add_argument("limit", type=int, nargs='?', help="Number of results to return", default=5)
 
     args = parser.parse_args()
 
@@ -76,12 +90,26 @@ def main() -> None:
         case "tfidf":
             index.load()
             token = tokenize(args.term)[0]
-            tf = index.get_tf(args.doc_id, token)
-            df = len(index.get_documents(token))
-            N = len(index.docmap)
-            idf = math.log((N + 1) / (df + 1))
-            tf_idf = tf * idf
+            tf_idf = index.get_tf_idf(args.doc_id, token)
             print(f"TF-IDF of term '{args.term}' in document {args.doc_id}: {tf_idf:.2f}")
+
+        case "bm25idf":
+            index.load()
+            bm25idf = index.get_bm25_idf(args.term)
+            print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
+
+        case "bm25tf":
+            index.load()
+            bm25tf = index.get_bm25_tf(args.doc_id, args.term, k1=args.k1, b=args.b)
+            print(f"BM25 TF score of '{args.term}' in document '{args.doc_id}': {bm25tf:.2f}")
+
+        case "bm25search":
+            index.load()
+            print(f"Searching for: {args.query} with limit {args.limit}")
+            results = index.bm25_search(args.query, args.limit)
+            for doc_id, score in results:   
+                movie = index.docmap[doc_id]
+                print(f"{movie.get('id')} {movie.get('title')} - {score:.2f}")
 
         case _:
             parser.print_help()
