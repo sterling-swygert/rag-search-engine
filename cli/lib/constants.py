@@ -3,8 +3,15 @@ import os
 BM25_K1 = 1.5
 BM25_B = 0.75
 DEFAULT_SEARCH_LIMIT = 5
+DEFAULT_CHUNK_SIZE = 200
+DEFAULT_OVERLAP_SIZE = 0
+DEFAULT_CHUNK_OVERLAP = 1
+DEFAULT_SEMANTIC_CHUNK_SIZE = 4
 
 CACHE_DIR = "cache"
 DATA_DIR = "data"
 STOPWORDS_PATH = os.path.join(DATA_DIR, "stopwords.txt")
 MOVIES_PATH = os.path.join(DATA_DIR, "movies.json")
+EMBEDDINGS_PATH = os.path.join(CACHE_DIR, "movie_embeddings.npy")
+CHUNK_EMBEDDINGS_PATH = os.path.join(CACHE_DIR, "chunk_embeddings.npy")
+CHUNK_METADATA_PATH = os.path.join(CACHE_DIR, "chunk_metadata.json")
