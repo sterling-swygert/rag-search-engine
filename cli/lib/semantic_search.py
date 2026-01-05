@@ -127,6 +127,39 @@ class ChunkedSemanticSearch(SemanticSearch):
         else:
             self.build_chunk_embeddings(documents)
         return self.chunk_embeddings
+    
+    def search_chunks(self, query: str, limit: int = 10):
+        query_embedding = self.generate_embedding(query)
+        chunk_score_lst = []
+        for chunk_meta, chunk_emb in zip(self.chunk_metadata, self.chunk_embeddings):
+            similarity = cosine_similarity(query_embedding, chunk_emb)
+            chunk_score_lst.append(
+                {
+                    "movie_idx": chunk_meta["doc_id"],
+                    "chunk_index": chunk_meta["chunk_index"],
+                    "score": similarity
+                }
+            )
+
+        score_map = {}
+        for item in chunk_score_lst:
+            movie_idx = item["movie_idx"]
+            score = item["score"]
+            if movie_idx not in score_map or score > score_map[movie_idx]:
+                score_map[movie_idx] = score
+        top_sorted_idx = [idx for idx in dict(sorted(score_map.items(), key=lambda x: x[1], reverse=True)).keys()][:limit]
+
+        results = []
+        for idx in top_sorted_idx:
+            doc = self.documents_map[idx]
+            results.append({
+                "id": idx,
+                "score": round(score_map[idx], constants.DEFAULT_SCORE_PRECISION),
+                "title": doc["title"],
+                "description": doc["description"][:constants.DEFAULT_DESCRIPTION_PREVIEW_LENGTH],
+                "metadata": {}
+            })
+        return results
 
 
 def verify_model():
@@ -157,7 +190,8 @@ def cosine_similarity(vec1, vec2):
 if __name__ == "__main__":
     with open(constants.MOVIES_PATH, "r") as f:
         documents = json.loads(f.read()).get('movies', [])
-        semanticSearch = SemanticSearch()
-        embeddings = semanticSearch.load_or_create_embeddings(documents)
-        print(f"Number of docs:   {len(documents)}")
-        print(f"Embeddings shape: {embeddings.shape[0]} vectors in {embeddings.shape[1]} dimensions")
+    
+    chunkedSemanticSearch = ChunkedSemanticSearch()
+    chunkedSemanticSearch.load_or_create_chunk_embeddings(documents=documents)
+
+    chunkedSemanticSearch.search_chunks("superhero action movie", limit=5)
