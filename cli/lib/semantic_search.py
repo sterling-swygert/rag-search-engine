@@ -7,8 +7,8 @@ from sentence_transformers import SentenceTransformer
 from torch import Tensor
 from typing import List
 
-from lib import constants
-from lib.utils import *
+from . import constants
+from .utils import *
 
 
 class SemanticSearch(object):

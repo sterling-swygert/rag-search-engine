@@ -3,7 +3,7 @@
 import argparse
 import math
 
-from lib.indexing import InvertedIndex, tokenize
+from cli.lib.keyword_search import InvertedIndex, tokenize
 from lib import constants
 
 

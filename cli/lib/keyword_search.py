@@ -8,8 +8,8 @@ from pathlib import Path
 import pickle as pkl
 import string
 
-from lib import constants
-from lib import utils
+from . import constants
+from . import utils
 
 stemmer = PorterStemmer()
 
