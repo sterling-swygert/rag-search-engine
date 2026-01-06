@@ -5,7 +5,7 @@ import os
 import re
 from sentence_transformers import SentenceTransformer
 from torch import Tensor
-from typing import List
+from typing import List, Dict, Any
 
 from . import constants
 from .utils import *
@@ -128,7 +128,7 @@ class ChunkedSemanticSearch(SemanticSearch):
             self.build_chunk_embeddings(documents)
         return self.chunk_embeddings
     
-    def search_chunks(self, query: str, limit: int = 10):
+    def search_chunks(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         query_embedding = self.generate_embedding(query)
         chunk_score_lst = []
         for chunk_meta, chunk_emb in zip(self.chunk_metadata, self.chunk_embeddings):
