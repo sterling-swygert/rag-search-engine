@@ -41,7 +41,6 @@ class InvertedIndex(object):
 
     def __add_document(self, doc_id, text):
         tokens = tokenize(text)
-        count_of_tokens_minus_stopwords = 0
         self.term_frequences[doc_id] = Counter()
         for token in tokens:
             if token not in self.index:
